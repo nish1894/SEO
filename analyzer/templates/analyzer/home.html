@@ -1,0 +1,47 @@
+{% extends 'layouts/box.html' %}
+
+{% block content %}
+    <h1 class="text-2xl font-semibold text-gray-800 ">Analyze your Link</h1>
+    <p class="text-gray-600 mb-2 ">
+      Paste a blog, newsletter, tweet-thread or caption below:
+    </p>
+
+    <form
+      hx-post="{% url 'analyze' %}"
+      hx-trigger="submit"
+      hx-target="#json-output"
+      hx-swap="innerHTML"
+      class="space-y-4 mb-6"
+    >
+      {% csrf_token %}
+
+      <input
+        type="text"
+        id="content"
+        name="url"
+        class="flex-1 rounded-xl border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 mb-3 sm:mb-0"
+        placeholder="Type or paste your link here…"
+      />
+
+      <button
+        type="submit"
+        class="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl shadow-sm transition"
+      >
+        Submit
+      </button>
+
+      <a
+        href=""
+        class="inline-flex items-center px-5 py-3 bg-red-200 hover:bg-gray-300 text-gray-800 font-medium rounded-xl transition"
+      >
+        Clear
+      </a>
+    </form>
+
+
+    <div id="json-output" class="whitespace-pre-wrap bg-gray-100 p-4 rounded">
+      <!-- HTMX will dump the raw JSON here -->
+      <pre class="text-xs"></pre>
+    </div>
+
+{% endblock %}
