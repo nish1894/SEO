@@ -144,9 +144,12 @@ def final_score(context):
     count_negatives = count_all - count_positives
     count_score = int(count_positives / count_all * 100)
 
-    score = {'count_all':count_all, 'count_positives':count_positives, 'count_negatives':count_negatives, 'count_score':count_score}
+    score_offset = 282.6 * (1 - count_score  / 100) # 282.6 is the circumference of the circle with radius 45px
 
-    print(score)
+
+    score = {'count_all':count_all, 'count_positives':count_positives, 'count_negatives':count_negatives,
+             'count_score':count_score, 'score_offset':score_offset}
+
     return score
 
 

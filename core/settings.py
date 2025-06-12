@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Third-party apps
+    # other apps
     'django_htmx',
 
     #my apps
@@ -128,6 +128,8 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 GOOGLE_PSI_API_KEY = 'AIzaSyBYuffw54sr4rcPw5HUQr_5jwuVz6Dlulg'
 PSI_ENDPOINT = "https://www.googleapis.com/pagespeedonline/v5/runPagespeed"
+
+SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 
 
 # Default primary key field type
