@@ -8,52 +8,39 @@
 
     <form
       hx-post="{% url 'analyze' %}"
-      hx-trigger="submit"
       hx-target="#psiFragmentContainer"
       hx-swap="innerHTML"
-
-
-      class="space-y-4 mb-6 "
+      hx-on="htmx:beforeRequest->this.querySelector('.spinner').classList.remove('hidden'),htmx:afterRequest->this.querySelector('.spinner').classList.add('hidden')"
+      method="post"
+      class="space-y-4 mb-6"
     >
       {% csrf_token %}
+      <input
+        type="url"
+        name="url"
+        required
+        placeholder="https://example.com"
+        class="w-4/5 rounded-xl border px-4 py-2"
+      />
 
-      <div>
-        <input
-          type="text"
-          id="content"
-          name="url"
-          class="w-4/5 rounded-xl border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          placeholder="Type or paste your link here…"
-        />
-          {% if form.url.errors %}
-        <p class="text-red-600 text-sm">{{ form.url.errors.0 }}</p>
-        {% endif %}
-      </div>
-
-
-      <div class="flex space-x-4">
-        <button
-          type="submit"
-          class="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl shadow-sm transition"
-        >
+      <div class="flex items-center space-x-4">
+        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded">
           Submit
         </button>
-          <!-- Loading spinner, hidden by default -->
+
+        <!-- Spinner hidden by default via Tailwind -->
         <svg
-          class="loading-indicator hidden w-6 h-6 text-indigo-600 animate-spin"
+          class="spinner  hidden w-6 h-6 text-indigo-600 animate-spin"
           xmlns="http://www.w3.org/2000/svg"
-          fill="none" viewBox="0 0 24 24"
+          viewBox="0 0 24 24"
         >
-          <circle
-            class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
-          />
-          <path
-            class="opacity-75" fill="currentColor"
-            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-          />
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
         </svg>
       </div>
     </form>
+
 
     <div id="recent-searches" >
         {% include 'analyzer/recent_searches.html' %}

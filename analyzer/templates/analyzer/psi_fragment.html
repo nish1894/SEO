@@ -56,20 +56,31 @@
 
 
   <!-- Parameters -->
-  <div class="space-y-4 max-w-xl mx-auto mt-8">
-    {% for key, value in context.items %}
-    <div class="flex items-center justify-between p-4 border rounded shadow-sm
+<div class="w-full bg-white mt-6">
+  {% for key, value in context.items %}
+    {% if forloop.counter0 == 0 %}
+      <h2 class="mt-8 mb-2 text-lg font-bold text-indigo-700">Content & Metadata</h2>
+    {% elif forloop.counter0 == 5 %}
+      <h2 class="mt-8 mb-2 text-lg font-bold text-indigo-700">Crawlability & Indexing</h2>
+    {% elif forloop.counter0 == 10 %}
+      <h2 class="mt-8 mb-2 text-lg font-bold text-indigo-700">Technical & Performance</h2>
+    {% endif %}
+
+    <div class="flex items-center justify-between p-2 border rounded-md shadow w-full
                 {% if value.1 == 1 %}bg-green-50{% else %}bg-red-50{% endif %}">
-      <div class="flex items-center space-x-3">
-        <span class="text-xl {% if value.1 == 1 %}text-green-600{% else %}text-red-600{% endif %}">
+      <div class="flex items-center space-x-2">
+        <span class="text-lg {% if value.1 == 1 %}text-green-600{% else %}text-red-600{% endif %} flex items-center">
           {% if value.1 == 1 %}✅{% else %}❌{% endif %}
         </span>
-        <p class="text-sm font-medium text-gray-800">{{ value.0 }}</p>
+        <p class="text-base font-medium text-gray-800 mb-0">{{ value.0 }}</p>
       </div>
-      <span class="text-gray-400 text-lg">&rsaquo;</span>
     </div>
-    {% endfor %}
-  </div>
+  {% endfor %}
+</div>
+
+
+
+
 
 
 </div>

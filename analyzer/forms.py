@@ -12,7 +12,7 @@ class URLForm(forms.Form):
         value = self.cleaned_data['url']
         # Quick head request to see if the site exists
         try:
-            resp = requests.head(value, timeout=5, allow_redirects=True)
+            resp = requests.head(value, timeout=20, allow_redirects=True)
             resp.raise_for_status()
         except requests.exceptions.RequestException:
             raise forms.ValidationError(

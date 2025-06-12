@@ -54,7 +54,7 @@ def analyze_view(request):
             'url': url,
             'icon_link': icon_link,
             'score': score,
-            'context': context,  # this can be any JSON-serializable object
+            'context': context,
         }
 
         # Pull existing history, prepend the new one, trim to 3
