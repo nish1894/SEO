@@ -3,6 +3,8 @@ from datetime import timezone
 import requests
 from django.http import HttpResponse, JsonResponse, Http404
 from django.shortcuts import render
+
+from .forms import URLForm
 from .utils.pageSpeed import fetch_pagespeed_report, pagespeed_report, final_score
 
 from .utils.fevicon import get_favicon
@@ -22,38 +24,79 @@ def home_view(request):
         'history': history
     })
 
-
+# def home_view(request):
+#     form = URLForm()
+#     history = request.session.get('history', [])
+#     return render(request, 'analyzer/home.html', {
+#         'form': form,
+#         'history': history,
+#     })
 
 
 def analyze_view(request):
-    url = request.POST.get('url')
-    print(f"Analyzing URL: {url}")
+    form = URLForm(request.POST)
+    if form.is_valid():
+        url = form.cleaned_data['url']
 
-    # url favicon
-    icon_link = get_favicon(url)
+        print(f"Analyzing URL: {url}")
 
-    #report
-    context = pagespeed_report(url,strategy='desktop')
+        # url favicon
+        icon_link = get_favicon(url)
 
-    # SEO Score
-    score = final_score(context)
+        # report
+        context = pagespeed_report(url, strategy='desktop')
 
-    # Build a new entry
-    entry = {
-        'url':       url,
-        'icon_link': icon_link,
-        'score':     score,
-        'context':   context,   # this can be any JSON-serializable object
-    }
+        # SEO Score
+        score = final_score(context)
 
-    # Pull existing history, prepend the new one, trim to 3
+        # Build a new entry
+        entry = {
+            'url': url,
+            'icon_link': icon_link,
+            'score': score,
+            'context': context,  # this can be any JSON-serializable object
+        }
+
+        # Pull existing history, prepend the new one, trim to 3
+        history = request.session.get('history', [])
+        history.insert(0, entry)
+        request.session['history'] = history[:3]
+        return render(request, 'analyzer/psi_fragment.html', entry)
+
+
+    # On GET or invalid POST, render the home page with the form (and errors)
     history = request.session.get('history', [])
-    history.insert(0, entry)
-    request.session['history'] = history[:3]
+    return render(request, 'analyzer/psi_error_fragment.html', )
 
-    # print(f"History updated: {request.session['history']}")
-
-    return render(request, 'analyzer/psi_fragment.html', {'context': context,'url': url, 'icon_link': icon_link, 'score': score})
+# def analyze_view(request):
+#     url = request.POST.get('url')
+#     print(f"Analyzing URL: {url}")
+#
+#     # url favicon
+#     icon_link = get_favicon(url)
+#
+#     #report
+#     context = pagespeed_report(url,strategy='desktop')
+#
+#     # SEO Score
+#     score = final_score(context)
+#
+#     # Build a new entry
+#     entry = {
+#         'url':       url,
+#         'icon_link': icon_link,
+#         'score':     score,
+#         'context':   context,   # this can be any JSON-serializable object
+#     }
+#
+#     # Pull existing history, prepend the new one, trim to 3
+#     history = request.session.get('history', [])
+#     history.insert(0, entry)
+#     request.session['history'] = history[:3]
+#
+#     # print(f"History updated: {request.session['history']}")
+#
+#     return render(request, 'analyzer/psi_fragment.html',entry)
 
 
 
