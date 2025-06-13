@@ -1,87 +1,106 @@
+{# analyzer/psi_fragment.html #}
+<div id="psiFragmentContainer" class="w-4/5 bg-gray-100 p-0 rounded w-full">
 
-
-<div id=id="psiFragmentContainer" class="w-4/5 bg-gray-100 p-0 rounded w-full">
-
-  <!-- Score -->
-  <div class="w-full bg-white shadow-md p-4 rounded-lg">
-
-    <!-- Header -->
-    <div class="flex items-center justify-between mb-6">
-      <div class="flex items-center space-x-4">
-        <img src="{{ icon_link }}" alt="Site Logo" class="w-10 h-10 rounded"/>
-        <a href="{{ url }}" class="text-lg font-semibold text-blue-600 hover:underline">{{ url }}</a>
-      </div>
+  {# — Error Banner — #}
+  {% if error_message %}
+    <div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl m-4">
+      <strong>{{ error_message }}</strong>
     </div>
+  {% endif %}
 
-    <!-- Score Section -->
-    <div class="flex items-center justify-between flex-wrap md:flex-nowrap bg-blue-50 p-6 rounded-lg">
-      <div class="flex-1">
-        <h2 class="text-2xl font-bold mb-2">Overall Site Score</h2>
-        <p class="text-gray-600 max-w-md">A very good score is between <strong>60 and 80</strong>. For best results, you should strive for <strong>70 and above</strong>.</p>
+  {# — Normal Report — only when no error — #}
+  {% if not error_message %}
+
+    <!-- Score Card Container -->
+    <div class="w-full bg-white shadow-md p-4 rounded-lg">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center space-x-4">
+          <img src="{{ icon_link }}" alt="Site Logo" class="w-10 h-10 rounded"/>
+          <a href="{{ url }}" class="text-lg font-semibold text-blue-600 hover:underline">
+            {{ url }}
+          </a>
+        </div>
       </div>
-      <div class="flex justify-center items-center mt-6 md:mt-0">
-        <div class="relative w-32 h-32">
-          <svg class="absolute top-0 left-0 w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="45" stroke="#e5e7eb" stroke-width="10" fill="none" />
-            <circle cx="50" cy="50" r="45" stroke="#f97316" stroke-width="10" fill="none"
-                    stroke-dasharray="282.6"
-                    stroke-dashoffset={{score.score_offset}} stroke-linecap="round" />
-          </svg>
-          <div class="absolute inset-0 flex items-center justify-center flex-col">
-            <span class="text-2xl font-bold text-orange-500">{{score.count_score}}</span>
-            <span class="text-sm text-gray-600">/ 100</span>
-            <span class="text-sm text-orange-500 font-semibold mt-1">{{ score.status_label }}</span>
+
+      <!-- Overall Site Score -->
+      <div class="flex items-center justify-between flex-wrap md:flex-nowrap bg-blue-50 p-6 rounded-lg">
+        <div class="flex-1">
+          <h2 class="text-2xl font-bold mb-2">Overall Site Score</h2>
+          <p class="text-gray-600 max-w-md">
+            A very good score is between <strong>60 and 80</strong>. For best results, you should
+            strive for <strong>70 and above</strong>.
+          </p>
+        </div>
+        <div class="flex justify-center items-center mt-6 md:mt-0">
+          <div class="relative w-32 h-32">
+            <svg class="absolute top-0 left-0 w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="45" stroke="#e5e7eb" stroke-width="10" fill="none" />
+              <circle cx="50" cy="50" r="45" stroke="#f97316" stroke-width="10" fill="none"
+                      stroke-dasharray="282.6"
+                      stroke-dashoffset="{{ score.score_offset }}"
+                      stroke-linecap="round" />
+            </svg>
+            <div class="absolute inset-0 flex items-center justify-center flex-col">
+              <span class="text-2xl font-bold text-orange-500">{{ score.count_score }}</span>
+              <span class="text-sm text-gray-600">/ 100</span>
+              <span class="text-sm text-orange-500 font-semibold mt-1">
+                {{ score.status_label }}
+              </span>
+            </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Summary Boxes -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+        <div class="bg-gray-50 p-4 border rounded text-center">
+          <p class="text-2xl font-bold text-gray-800">
+            {{ score.count_all }}
+            <span class="text-base font-normal">of {{ score.count_all }}</span>
+          </p>
+          <p class="mt-1 text-gray-500">All Items</p>
+        </div>
+        <div class="bg-red-50 p-4 border border-red-200 rounded text-center">
+          <p class="text-2xl font-bold text-red-600">
+            {{ score.count_negatives }}
+            <span class="text-base font-normal text-gray-700">of {{ score.count_all }}</span>
+          </p>
+          <p class="mt-1 text-red-500">Critical Issues</p>
+        </div>
+        <div class="bg-green-50 p-4 border border-green-200 rounded text-center">
+          <p class="text-2xl font-bold text-green-600">
+            {{ score.count_positives }}
+            <span class="text-base font-normal text-gray-700">of {{ score.count_all }}</span>
+          </p>
+          <p class="mt-1 text-green-500">Good Results</p>
         </div>
       </div>
     </div>
 
-    <!-- Summary Boxes -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-      <div class="bg-gray-50 p-4 border rounded text-center">
-        <p class="text-2xl font-bold text-gray-800">{{score.count_all}} <span class="text-base font-normal">of {{score.count_all}} </span></p>
-        <p class="mt-1 text-gray-500">All Items</p>
-      </div>
-      <div class="bg-red-50 p-4 border border-red-200 rounded text-center">
-        <p class="text-2xl font-bold text-red-600">{{score.count_negatives}}  <span class="text-base font-normal text-gray-700">of {{score.count_all}} </span></p>
-        <p class="mt-1 text-red-500">Critical Issues</p>
-      </div>
+    <!-- Parameter Details -->
+    <div class="w-full  bg-white  p-4 rounded-lg shadow-inner">
+      {% for key, value in context.items %}
+        {% if forloop.first %}
+          <h2 class="mt-8 mb-2 text-lg font-bold text-indigo-700">Content & Metadata</h2>
+        {% elif forloop.counter0 == 5 %}
+          <h2 class="mt-8 mb-2 text-lg font-bold text-indigo-700">Crawlability & Indexing</h2>
+        {% elif forloop.counter0 == 10 %}
+          <h2 class="mt-8 mb-2 text-lg font-bold text-indigo-700">Technical & Performance</h2>
+        {% endif %}
 
-      <div class="bg-green-50 p-4 border border-green-200 rounded text-center">
-        <p class="text-2xl font-bold text-green-600">{{score.count_positives}}  <span class="text-base font-normal text-gray-700">of {{score.count_all}} </span></p>
-        <p class="mt-1 text-green-500">Good Results</p>
-      </div>
+        <div class="flex items-center justify-between p-2 border rounded-md shadow
+                    {% if value.1 == 1 %}bg-green-50{% else %}bg-red-50{% endif %}">
+          <div class="flex items-center space-x-2">
+            <span class="text-lg {% if value.1 == 1 %}text-green-600{% else %}text-red-600{% endif %}">
+              {% if value.1 == 1 %}✅{% else %}❌{% endif %}
+            </span>
+            <p class="text-base font-medium text-gray-800 mb-0">{{ value.0 }}</p>
+          </div>
+        </div>
+      {% endfor %}
     </div>
-  </div>
 
-
-  <!-- Parameters -->
-<div class="w-full bg-white mt-6">
-  {% for key, value in context.items %}
-    {% if forloop.counter0 == 0 %}
-      <h2 class="mt-8 mb-2 text-lg font-bold text-indigo-700">Content & Metadata</h2>
-    {% elif forloop.counter0 == 5 %}
-      <h2 class="mt-8 mb-2 text-lg font-bold text-indigo-700">Crawlability & Indexing</h2>
-    {% elif forloop.counter0 == 10 %}
-      <h2 class="mt-8 mb-2 text-lg font-bold text-indigo-700">Technical & Performance</h2>
-    {% endif %}
-
-    <div class="flex items-center justify-between p-2 border rounded-md shadow w-full
-                {% if value.1 == 1 %}bg-green-50{% else %}bg-red-50{% endif %}">
-      <div class="flex items-center space-x-2">
-        <span class="text-lg {% if value.1 == 1 %}text-green-600{% else %}text-red-600{% endif %} flex items-center">
-          {% if value.1 == 1 %}✅{% else %}❌{% endif %}
-        </span>
-        <p class="text-base font-medium text-gray-800 mb-0">{{ value.0 }}</p>
-      </div>
-    </div>
-  {% endfor %}
+  {% endif %} {# end of {% if not error_message %} #}
 </div>
-
-
-
-
-
-
-</div>
-
