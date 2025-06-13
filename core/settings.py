@@ -131,6 +131,10 @@ PSI_ENDPOINT = "https://www.googleapis.com/pagespeedonline/v5/runPagespeed"
 
 SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 
+# textrazor settings
+TEXTRAZOR_ENDPOINT = "https://api.textrazor.com/"
+TEXTRAZOR_API_KEY = "c6e91c904f2ade47a9282941e58ddd0dd347f67778f51c59ee3a8817"
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

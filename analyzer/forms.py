@@ -14,6 +14,22 @@ Validation:
 from django import forms
 import requests
 
+class TextForm(forms.Form):
+    """
+    Accepts a block of user text (blog post, tweet thread, etc.)
+    and verifies it's not empty.
+    """
+    content = forms.CharField(
+        label="Your Text",
+        widget=forms.Textarea(attrs={
+            "placeholder": "Paste your blog, tweet, or caption here…",
+            "rows": 6,
+            "class": "w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500",
+        }),
+        help_text="Enter at least 20 characters.",
+        min_length=10,
+    )
+
 
 class URLForm(forms.Form):
     url = forms.URLField(
@@ -47,3 +63,5 @@ class URLForm(forms.Form):
                 "and that the site is up."
             )
         return value
+
+
