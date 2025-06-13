@@ -131,7 +131,7 @@ def fetch_pagespeed_report(url: str, strategy: str = "desktop") -> dict:
         "strategy": strategy,
         "key": settings.GOOGLE_PSI_API_KEY,
     }
-    resp = requests.get(settings.PSI_ENDPOINT, params=params, timeout=50)
+    resp = requests.get(settings.PSI_ENDPOINT, params=params, timeout=10)
     data = resp.json()
     # return only the lighthouseResult dict
     return data.get("lighthouseResult", {})

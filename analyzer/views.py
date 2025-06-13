@@ -1,19 +1,15 @@
-from datetime import timezone
+# analyzer/views.py
 
-import requests
-from django.http import HttpResponse, JsonResponse, Http404
+import logging
+from requests.exceptions import ReadTimeout, RequestException
+from django.http import Http404
 from django.shortcuts import render
-
 from .forms import URLForm
-from .utils.pageSpeed import fetch_pagespeed_report, pagespeed_report, final_score
-
 from .utils.fevicon import get_favicon
+from .utils.pageSpeed import pagespeed_report, final_score
 
 
 
-
-
-# Create your views here.
 
 def home_view(request):
     history = request.session.get('history', [])
@@ -24,19 +20,18 @@ def home_view(request):
         'history': history
     })
 
-# def home_view(request):
-#     form = URLForm()
-#     history = request.session.get('history', [])
-#     return render(request, 'analyzer/home.html', {
-#         'form': form,
-#         'history': history,
-#     })
-
 
 def analyze_view(request):
     form = URLForm(request.POST)
     if form.is_valid():
         url = form.cleaned_data['url']
+
+        # 1) If URL is already in history, jump straight to that detail
+        history = request.session.get('history', [])
+        for idx, entry in enumerate(history):
+            if entry.get('url') == url:
+                # htMX will swap this fragment into #psiFragmentContainer
+                return history_detail(request, idx)
 
         print(f"Analyzing URL: {url}")
 
@@ -44,7 +39,18 @@ def analyze_view(request):
         icon_link = get_favicon(url)
 
         # report
-        context = pagespeed_report(url, strategy='desktop')
+        try:
+            context = pagespeed_report(url, strategy='desktop')
+        except ReadTimeout:
+            return render(request, 'analyzer/psi_error_fragment.html', {
+                'error_message': "Request timed out. Please try again later."
+            })
+        except KeyError:
+            return render(request, 'analyzer/psi_error_fragment.html', {
+                'error_message': "Unexpected response format from PageSpeed API. Please Try Again Later"
+            })
+
+
 
         # SEO Score & status
         score = final_score(context)
@@ -66,37 +72,8 @@ def analyze_view(request):
 
     # On GET or invalid POST, render the home page with the form (and errors)
     history = request.session.get('history', [])
-    return render(request, 'analyzer/psi_error_fragment.html', )
-
-# def analyze_view(request):
-#     url = request.POST.get('url')
-#     print(f"Analyzing URL: {url}")
-#
-#     # url favicon
-#     icon_link = get_favicon(url)
-#
-#     #report
-#     context = pagespeed_report(url,strategy='desktop')
-#
-#     # SEO Score
-#     score = final_score(context)
-#
-#     # Build a new entry
-#     entry = {
-#         'url':       url,
-#         'icon_link': icon_link,
-#         'score':     score,
-#         'context':   context,   # this can be any JSON-serializable object
-#     }
-#
-#     # Pull existing history, prepend the new one, trim to 3
-#     history = request.session.get('history', [])
-#     history.insert(0, entry)
-#     request.session['history'] = history[:3]
-#
-#     # print(f"History updated: {request.session['history']}")
-#
-#     return render(request, 'analyzer/psi_fragment.html',entry)
+    error_message = "Enter a valid Web Address!"
+    return render(request, 'analyzer/psi_error_fragment.html', {'error_message': error_message})
 
 
 
