@@ -1,17 +1,16 @@
 {% extends 'layouts/box.html' %}
 
 {% block content %}
-    <h1 class="text-2xl font-semibold -mt-8 text-gray-800 ">Analyze your Link</h1>
+    <h1 class="text-2xl font-semibold -mt-6 text-gray-800 ">Analyze your Link</h1>
     <p class="text-gray-600 mb-2 ">
       Paste a blog, newsletter, tweet-thread or caption below:
     </p>
+
 
     <form
       hx-post="{% url 'analyze' %}"
       hx-target="#psiFragmentContainer"
       hx-swap="innerHTML"
-      hx-on="htmx:beforeRequest->this.querySelector('.spinner').classList.remove('hidden'),htmx:afterRequest->this.querySelector('.spinner').classList.add('hidden')"
-      method="post"
       class="space-y-4 mb-6"
     >
       {% csrf_token %}
@@ -23,22 +22,10 @@
         class="w-4/5 rounded-xl border px-4 py-2"
       />
 
-      <div class="flex items-center space-x-4">
-        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded">
+        <button type="submit" class="px-2 py-2 bg-indigo-600 text-white rounded">
           Submit
         </button>
 
-        <!-- Spinner hidden by default via Tailwind -->
-        <svg
-          class="spinner  hidden w-6 h-6 text-indigo-600 animate-spin"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-        >
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-          <path class="opacity-75" fill="currentColor"
-                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
-        </svg>
-      </div>
     </form>
 
 
@@ -46,5 +33,16 @@
         {% include 'analyzer/recent_searches.html' %}
     </div>
     <div id="psiFragmentContainer"></div>
+
+
+    <script>
+      document.body.addEventListener('htmx:beforeRequest', function() {
+        document.getElementById('loading-overlay').classList.remove('hidden');
+      });
+      document.body.addEventListener('htmx:afterRequest', function() {
+        document.getElementById('loading-overlay').classList.add('hidden');
+      });
+    </script>
+
 
 {% endblock %}

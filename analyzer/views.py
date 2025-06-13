@@ -46,7 +46,7 @@ def analyze_view(request):
         # report
         context = pagespeed_report(url, strategy='desktop')
 
-        # SEO Score
+        # SEO Score & status
         score = final_score(context)
 
         # Build a new entry

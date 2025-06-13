@@ -1,9 +1,9 @@
 {% load static %}
-<header class="flex items-center justify-between bg-neutral-200 h-15 px-8 text-black sticky top-0 z-40">
+<header class="flex items-center justify-center bg-neutral-200 h-15 px-8 text-black sticky top-0 z-40">
     <div>
-        <a class="flex items-center gap-2" href="/">
+        <a class="flex items-center gap-2" href="{% url 'analyzer' %}">
             <img class="h-16" src="{% static 'images/logo2.png' %}" alt="Logo"/>
-            <span class="text-lg font-bold">Analyzer</span>
+            <span class="text-lg font-bold">SEO Analyzer</span>
         </a>
     </div>
 </header>

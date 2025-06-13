@@ -1,6 +1,5 @@
 # analyzer/utils/fevicon.py
 
-
 import requests
 from bs4 import BeautifulSoup
 

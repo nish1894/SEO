@@ -2,9 +2,7 @@
 
 import requests
 from django.conf import settings
-from .audit_config import SEO_AUDIT_CONFIG
 
-import json
 
 
 
@@ -146,11 +144,25 @@ def final_score(context):
 
     score_offset = 282.6 * (1 - count_score  / 100) # 282.6 is the circumference of the circle with radius 45px
 
+    status_label = get_status_label(count_score)
 
+    print(status_label)
     score = {'count_all':count_all, 'count_positives':count_positives, 'count_negatives':count_negatives,
-             'count_score':count_score, 'score_offset':score_offset}
+             'count_score':count_score, 'score_offset':score_offset,'status_label' : status_label }
 
     return score
+
+def get_status_label(score):
+    if score < 50:
+        return "Poor"
+    if score < 60:
+        return "Average"
+    if score < 70:
+        return "Good"
+    if score < 80:
+        return "Very Good"
+    return "Excellent"
+
 
 
 
