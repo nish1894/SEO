@@ -1,3 +1,4 @@
+
 {% extends 'layouts/box.html' %}
 
 {% block content %}
@@ -32,12 +33,30 @@
   <div id="textFragmentContainer"></div>
 
   <script>
-    // Optional: simple spinner if you want
-    document.body.addEventListener('htmx:beforeRequest', function() {
-      // show loading spinner if desired
+function insertKeywordAndReanalyze(keyword, currentText) {
+    // Parse current text if needed for smart insertion
+    fetch("{% url 'insert_keyword' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: `keyword=${encodeURIComponent(keyword)}&text=${encodeURIComponent(currentText)}`
+    })
+    .then(response => response.text())
+    .then(newText => {
+        // Update the textarea
+        const textarea = document.getElementById('main-input');
+        if (textarea) {
+            textarea.value = newText;
+
+            // Trigger re-analysis
+            const form = textarea.closest('form');
+            if (form) {
+                htmx.trigger(form, 'submit');
+            }
+        }
     });
-    document.body.addEventListener('htmx:afterRequest', function() {
-      // hide spinner
-    });
-  </script>
+}
+</script>
 {% endblock %}

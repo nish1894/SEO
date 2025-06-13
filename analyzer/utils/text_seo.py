@@ -8,46 +8,39 @@ import logging
 from textblob import TextBlob
 from analyzer.utils.seo_optimizer import SeoOptimizer
 
-
+# Initialize logger for this module
 logger = logging.getLogger(__name__)
 
 
 def analyze_seo(text: str) -> dict:
     """
-    Given a block of text, call TextRazor, compute readability, and extract topics & sentiment.
+    Analyze SEO features for a block of text: calls TextRazor,
+    computes readability, extracts topics, stats, and suggestions.
     """
-    # 1) Fetch the full TextRazor response
+    # 1) Fetch and parse TextRazor response
     textrazor_json = fetch_textrazor_json(text)
     data_json = textrazor_json.get("response", {})
 
-
-
-    # 2) Primary topics (top 5)
+    # 2) Extract topics and coarse topics (top 5)
     topics = [
         {"label": t["label"], "score": round(t["score"], 2)}
         for t in data_json.get("topics", [])[:5]
     ]
-
-    # 3) Coarse topics (top 5)
     coarse_topics = [
         {"label": t["label"], "score": round(t["score"], 2)}
         for t in data_json.get("coarseTopics", [])[:5]
     ]
 
-    # 4) Enhanced Sentiment analysis with multiple fallback methods
+    # 3) Sentiment analysis (fallback to TextBlob)
     sentiment_result = extract_sentiment_comprehensive(text)
 
-    # 5) Sentence & word counts (for completeness)
-
+    # 4) Text statistics (sentence/word counts, etc)
     stats = analyze_content_structure(data_json)
 
-    # keyword suggestions
-
+    # 5) Suggested keywords
     suggestions = extract_keywords(data_json)
 
-#
-
-    # 6) Readability via textstat
+    # 6) Readability metrics
     readability = {
         "flesch_reading_ease": textstat.flesch_reading_ease(text),
         "flesch_kincaid_grade": textstat.flesch_kincaid_grade(text),
@@ -58,11 +51,12 @@ def analyze_seo(text: str) -> dict:
         "language_is_reliable": data_json.get("languageIsReliable", False),
     }
 
+    # 7) Determine main and semantic keywords (top topic and related)
     all_keywords = [t["label"] for t in data_json.get("topics", [])]
-    main_keywords = all_keywords[:1]  # Top topic as main keyword
-    semantic_keywords = all_keywords[1:4]  # Next 2–3 as related
+    main_keywords = all_keywords[:1]            # Main keyword: top topic
+    semantic_keywords = all_keywords[1:4]       # Semantic: next 2–3
 
-    # optimization
+    # 8) Analyze optimization opportunities
     optimizer = SeoOptimizer(
         text=text,
         main_keywords=main_keywords,
@@ -71,7 +65,6 @@ def analyze_seo(text: str) -> dict:
         stats=stats
     )
     opportunities = optimizer.analyze()
-
 
     return {
         "suggestions": suggestions,
@@ -83,16 +76,14 @@ def analyze_seo(text: str) -> dict:
         "sentiment_confidence": sentiment_result["confidence"],
         "sentiment_method": sentiment_result["method"],
         "stats": stats,
-        'opportunities': opportunities,
-
+        "opportunities": opportunities,
     }
 
 
 def extract_sentiment_comprehensive(text):
     """
-    Extract sentiment
+    Sentiment analysis fallback using TextBlob polarity.
     """
-
     blob = TextBlob(text)
     score = blob.sentiment.polarity  # range: -1.0 … +1.0
 
@@ -106,7 +97,7 @@ def extract_sentiment_comprehensive(text):
     return {
         "sentiment": sentiment,
         "score": score,
-        "confidence": 0.2,  # Low confidence for keyword method
+        "confidence": 0.2,  # Low confidence for fallback
         "method": "keyword_fallback"
     }
 
@@ -118,28 +109,37 @@ def fetch_textrazor_json(text):
         "text": text,
         "extractors": "topics,coarseTopics,sentiment,sentences,language,entities,words"
     }
-    resp = requests.post(url, headers=headers, data=payload, timeout=10)
-    resp.raise_for_status()
-    return resp.json()
+    try:
+        resp = requests.post(url, headers=headers, data=payload, timeout=10)
+        resp.raise_for_status()
+        return resp.json()
+    except requests.RequestException as e:
+        logger.error(f"TextRazor request failed: {e}")
+        return {"response": {}}  # Fallback to empty to avoid crashing later
+
+
 
 def analyze_content_structure(data_json):
-    # Sentences
+    """
+    Analyze and aggregate text stats: sentences, words, complex words, averages.
+    """
     sentences = data_json.get("sentences", [])
     sentence_count = len(sentences)
 
-    # Words
     word_count = sum(len(s.get("words", [])) for s in sentences)
     words = []
     for s in sentences:
         words += [w['token'] for w in s.get('words', [])]
 
-    # Complex words (syllable count > 2)
+    # Count complex words: >2 syllables
     complex_word_count = sum(1 for w in words if textstat.syllable_count(w) > 2)
     percent_complex = (complex_word_count / word_count * 100) if word_count else 0
     avg_words_per_sentence = (word_count / sentence_count) if sentence_count else 0
-    avg_syllables_per_word = (sum(textstat.syllable_count(w) for w in words) / word_count) if word_count else 0
+    avg_syllables_per_word = (
+        sum(textstat.syllable_count(w) for w in words) / word_count
+    ) if word_count else 0
 
-    stats = {
+    return {
         "sentences": sentence_count,
         "words": word_count,
         "complex_words": complex_word_count,
@@ -148,11 +148,11 @@ def analyze_content_structure(data_json):
         "avg_syllables_per_word": avg_syllables_per_word,
     }
 
-    # ... topics, readability, etc. as before
-
-    return stats
 
 def extract_keywords(data_json, max_keywords=7):
+    """
+    Extract a set of recommended keywords from topics, entities, and frequent nouns.
+    """
     # 1. Top topics by score
     topics = sorted(
         data_json.get("topics", []),
@@ -160,16 +160,15 @@ def extract_keywords(data_json, max_keywords=7):
     )
     topic_labels = [t["label"] for t in topics[:max_keywords] if "label" in t]
 
-    # 2. Top entities (avoid numbers)
+    # 2. Top entities (only alphabetic, not numbers)
     entities = [
         e["entityId"]
         for e in data_json.get("entities", [])
         if "entityId" in e and e["entityId"].isalpha()
     ]
-    # Take only new ones not already in topic_labels
     entity_labels = [e for e in entities if e not in topic_labels][:max_keywords]
 
-    # 3. High-frequency nouns (if still less than max_keywords)
+    # 3. High-frequency nouns (if not enough suggestions)
     word_counts = {}
     for sentence in data_json.get("sentences", []):
         for word in sentence.get("words", []):
@@ -183,59 +182,10 @@ def extract_keywords(data_json, max_keywords=7):
         if w not in topic_labels and w not in entity_labels
     ][:max_keywords]
 
-    # Merge and deduplicate
+    # Merge and deduplicate, return top N
     suggestions = topic_labels + entity_labels + frequent_nouns
-    # Limit to max_keywords
     suggestions = list(dict.fromkeys(suggestions))[:max_keywords]
-
     return suggestions
 
-def seo_optimization_opportunities(text, main_keywords, semantic_keywords, readability, stats):
-    opps = []
 
-    # Keyword density
-    for keyword in main_keywords:
-        count, density = keyword_density(text, keyword, stats['words'])
-        if count == 0:
-            opps.append(f"Include your main keyword '{keyword}' at least once.")
-        elif density < 1:
-            opps.append(f"Increase keyword '{keyword}' usage (current density: {density}%).")
-
-    # Semantic keywords
-    missing_sem = missing_semantic_keywords(text, semantic_keywords)
-    if missing_sem:
-        opps.append(f"Consider including related terms: {', '.join(missing_sem)}.")
-
-    # Long sentences
-    long_sents = long_sentences(text)
-    if long_sents:
-        opps.append(f"{len(long_sents)} sentence(s) are too long. Try splitting them.")
-
-    # Large paragraphs
-    large_paras = large_paragraphs(text)
-    if large_paras:
-        opps.append(f"Break up paragraphs with more than 80 words for easier reading.")
-
-    # Power words
-    if not POWER_WORDS.intersection(set(text.lower().split())):
-        opps.append("Add engaging 'power words' like: best, easy, secret, etc.")
-
-    # Passive voice
-    passive = passive_voice_sentences(text)
-    if len(passive) > len(TextBlob(text).sentences) * 0.3:
-        opps.append("Reduce passive voice. Rewrite sentences to be more direct.")
-
-    # Reading grade
-    if readability["flesch_kincaid_grade"] > 10:
-        opps.append("Lower the reading grade for a broader audience.")
-
-    # Word count
-    if stats["words"] < 300:
-        opps.append("Increase content length to at least 300 words for SEO.")
-
-    # Conclusion
-    if not has_conclusion(text):
-        opps.append("Add a short summary or conclusion at the end.")
-
-    return opps
 
