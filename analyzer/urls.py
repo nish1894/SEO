@@ -17,5 +17,7 @@ urlpatterns = [
     # path('analyze/', analyze_view, name='analyze'),
     path('history/<int:idx>/', history_detail, name='history_detail'),
     path('analyze-text/', analyze_text_view, name='analyze_text'),
+    path('insert-keyword/', insert_keyword_view, name='insert_keyword'),
+
 
 ]

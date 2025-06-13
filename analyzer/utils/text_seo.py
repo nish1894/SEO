@@ -72,7 +72,6 @@ def analyze_seo(text: str) -> dict:
     )
     opportunities = optimizer.analyze()
 
-    print("🔍 SEO optimization opportunities:", opportunities)
 
     return {
         "suggestions": suggestions,
@@ -189,7 +188,6 @@ def extract_keywords(data_json, max_keywords=7):
     # Limit to max_keywords
     suggestions = list(dict.fromkeys(suggestions))[:max_keywords]
 
-    print("🔍 keyword suggestions (filtered):", suggestions)
     return suggestions
 
 def seo_optimization_opportunities(text, main_keywords, semantic_keywords, readability, stats):

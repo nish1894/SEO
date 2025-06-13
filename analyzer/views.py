@@ -11,9 +11,10 @@ Views:
 - history_detail: Retrieve and display a past analysis from session history by index.
 """
 import requests
+import json
 import logging
 from requests.exceptions import ReadTimeout, RequestException
-from django.http import Http404, JsonResponse
+from django.http import Http404, JsonResponse, HttpResponse
 from django.shortcuts import render
 
 from .forms import URLForm, TextForm
@@ -35,10 +36,8 @@ def home_view(request):
         history (list): List of recent searches stored in session.
     """
     form = URLForm()
-    history = request.session.get('history', [])
     return render(request, 'analyzer/home.html', {
         'text_form': TextForm(),
-        'history': history,
     })
 
 
@@ -48,12 +47,10 @@ def home_view(request):
 
 def analyze_text_view(request):
     form    = TextForm(request.POST or None)
-    history = request.session.get('text_history', [])
 
     if not form.is_valid():
         return render(request, 'analyzer/text_fragment.html', {
             'text_form': form,
-            'history':   history,
             'error_message': form.errors['content'][0],
         })
 
@@ -65,7 +62,6 @@ def analyze_text_view(request):
     except requests.RequestException as e:
         return render(request, 'analyzer/text_fragment.html', {
             'text_form':    form,
-            'history':      history,
             'error_message': f"TextRazor API error: {e}",
         })
 
@@ -86,18 +82,30 @@ def analyze_text_view(request):
         "stats": raw['stats'],
         'content': content,
         'text_form': TextForm(),  # reset form if you need it
-        'history': history,
 
     })
 
+
 def insert_keyword_view(request):
     if request.method == "POST":
-        text = request.POST.get("text", "")
-        keyword = request.POST.get("keyword", "")
-        # Smart insertion (see below)
-        new_text = insert_keyword_smart(text, keyword)
-        # Return only the updated textarea HTML
-        return JsonResponse({"new_text": new_text})
+        keyword = request.POST.get('keyword', '').strip()
+        text = request.POST.get('text', '').strip()
+
+        print("Received data:", request.POST)  # Debug
+
+        if not keyword or not text:
+            return HttpResponse("Missing data", status=400)
+
+        # Re-parse your data_json here if needed (for smart placement)
+        data_json = fetch_textrazor_json(text)
+        new_text = insert_keyword_smart(data_json, text, keyword)
+
+        # Use safe or escape as needed!
+        html = f'''
+        <div id="text-preview" class="prose max-w-none p-4 border rounded bg-gray-50">{new_text}</div>
+        '''
+        return HttpResponse(html)
+    return HttpResponse("Error", status=400)
 
 
 
