@@ -16,7 +16,7 @@ Views:
 from django.http import Http404, JsonResponse, HttpResponse
 from django.shortcuts import render
 
-from .forms import URLForm, TextForm
+from .forms import  TextForm
 from .utils.insert_keyword import insert_keyword_smart
 from .utils.text_seo import *
 
@@ -27,7 +27,6 @@ def home_view(request):
     """
     Render the homepage with the text input form.
     """
-    form = URLForm()
     return render(request, 'analyzer/home.html', {
         'text_form': TextForm(),
     })
@@ -40,10 +39,9 @@ def analyze_text_view(request):
     form = TextForm(request.POST or None)
 
     if not form.is_valid():
-        # Show validation error in fragment
-        return render(request, 'analyzer/text_fragment.html', {
-            'text_form': form,
-            'error_message': form.errors['content'][0],
+        # Error: Empty or too short input, send error fragment
+        return render(request, 'analyzer/text_fragment_error.html', {
+            'error_message': form.errors['content'][0]  # Django will supply a useful message!
         })
 
     content = form.cleaned_data['content']
@@ -51,14 +49,20 @@ def analyze_text_view(request):
     # 1) Call TextRazor and catch any API error
     try:
         raw = analyze_seo(content)
+    except requests.Timeout:
+        return render(request, 'analyzer/text_fragment_error.html', {
+            'error_message': "The SEO analysis service timed out. Please try again."
+        })
     except requests.RequestException as e:
-        return render(request, 'analyzer/text_fragment.html', {
-            'text_form': form,
-            'error_message': f"TextRazor API error: {e}",
+        return render(request, 'analyzer/text_fragment_error.html', {
+            'error_message': "Could not contact the SEO analysis service. Please try again later."
+        })
+    except Exception as e:
+        return render(request, 'analyzer/text_fragment_error.html', {
+            'error_message': "An unexpected error occurred. Please try again."
         })
 
-    # 2) Log TextRazor raw response for debugging
-    logger.debug("TextRazor raw response: %s", raw)
+
 
     # 3) Render the analysis fragment with results
     return render(request, 'analyzer/text_fragment.html', {
@@ -70,7 +74,7 @@ def analyze_text_view(request):
         "sentiment": raw['sentiment'],
         "stats": raw['stats'],
         'content': content,
-        'text_form': TextForm(),  # reset form if you need it
+        'text_form': TextForm(),  # reset form
     })
 
 
